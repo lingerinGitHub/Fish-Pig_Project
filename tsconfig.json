@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true, // 允许从没有设置默认导出的模块中默认导入
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+      "#/*": [
+        "types/*"
+      ]
+    },
+    "types": [
+      "node"
+    ], // 确保包含 node 类型声明
+    // "files": [],
+    // "references": [
+    //   {
+    //     "path": "./tsconfig.app.json"
+    //   },
+    //   {
+    //     "path": "./tsconfig.node.json"
+    //   }
+    // ]
+  }
+}

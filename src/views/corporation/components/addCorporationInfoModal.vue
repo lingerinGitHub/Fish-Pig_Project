@@ -30,6 +30,9 @@ import { ref, reactive, computed } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import mitt from '@/utils/mitt'
 import { addCorporation } from '@/interface/corporation'
+import { fish_post } from '@/services/axiosMethods';
+import { httpUrl } from '@/api/httpUrl';
+import { useCorporationStore } from '@/stores/corporationStore';
 
 
 interface Props {
@@ -84,12 +87,17 @@ const handleSubmit = async () => {
             return
         }
 
-        emit('update:user', { ...formData })
-        emit('update:visible', false)
-
-        // await userStore.updateUserBaseInfo(formData.name, formData.phone, formData.email, formData.bio)
-
-        ElMessage.success('信息更新成功')
+        await useCorporationStore().addCorporation(formData.corporationName, formData.sort)
+            .then(() => {
+                // 清空表单
+                formRef.value?.resetFields()
+                // 关闭弹窗
+                emit('update:visible', false)
+            })
+            .catch(err => {
+                console.log(err);
+                mitt.emit('ElNotification', { type: 'error', title: "错误", message: err.message })
+            })
     } catch (error) {
         mitt.emit('ElNotification', { type: 'error', title: "错误", message: '表单校验失败' })
     } finally {

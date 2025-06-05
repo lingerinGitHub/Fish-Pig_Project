@@ -1,4 +1,24 @@
 <template>
+    <!-- 二次确认对话框 -->
+    <el-dialog v-model="alertDialogVisible" top="10vh" width="500" :before-close="handleAlertClose">
+        <template #header="{ titleId, titleClass }">
+            <div class="my-header">
+                <el-icon size="40px" color="#f56c6c">
+                    <Warning />
+                </el-icon>
+                <!-- <h4 :id="titleId" :class="titleClass">{{ currentSelectedCorporation.corporationName }}</h4> -->
+                <div :id="titleId" :class="titleClass">是否删除 {{ currentSelectedCorporation.corporationName }} ！</div>
+            </div>
+        </template>
+        <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="alertDialogVisible = false">取消</el-button>
+                <el-button type="danger" @click="deleteCorporation">
+                    确认删除
+                </el-button>
+            </div>
+        </template>
+    </el-dialog>
     <div class="corporations-container">
         <!-- 标题区域 -->
         <div class="header">
@@ -39,7 +59,8 @@
                         <template #default="{ row }">
                             <el-button type="primary" size="small" icon="Edit"
                                 @click="openUpdateCorporationInfoModal(row)">编辑</el-button>
-                            <el-button type="danger" size="small" icon="Delete">删除</el-button>
+                            <el-button type="danger" size="small" icon="Delete"
+                                @click="confirmDialogVisible(row)">删除</el-button>
                         </template>
                     </el-table-column>
                 </template>
@@ -50,14 +71,15 @@
         <div class="pagination-container">
             <el-pagination background layout="total, sizes, prev, pager, next, jumper" :total="corporationStore.total"
                 :page-size="corporationStore.pageSize" :current-page="corporationStore.currentPage"
-                :page-sizes="[2, 10, 20, 50]" @size-change="handleSizeChange" @current-change="handleCurrentChange" />
+                :page-sizes="[6, 10, 20, 50]" @size-change="handleSizeChange" @current-change="handleCurrentChange" />
         </div>
 
         <!-- 搜索区域 -->
         <div class="search-container">
-            <el-input v-model="searchQuery" placeholder="搜索公司名称..." clearable prefix-icon="Search"
-                style="width: 300px;" />
-            <el-button type="primary" icon="Search">搜索</el-button>
+            <el-input v-model="searchQuery" placeholder="搜索公司名称..." clearable prefix-icon="Search" style="width: 300px;"
+                @input="onInput" />
+            <el-button type="primary" icon="Search"
+                @click="corporationStore.fuzzyLookupCorporationList(1, searchQuery)">搜索</el-button>
         </div>
 
         <!-- 添加公司弹窗 -->
@@ -67,7 +89,8 @@
             v-model:corporation="currentSelectedCorporation" @close="closeUpdateCorporationInfoModal" />
         <!-- 查看公司订单弹窗 -->
         <show-corporation-order-modal v-model:visible="isShowCorporationOrderModal"
-            v-model:corporation="currentSelectedCorporation"></show-corporation-order-modal>
+            v-model:corporation="currentSelectedCorporation"
+            @close="closeShowCorporationOrderModal"></show-corporation-order-modal>
     </div>
 </template>
 
@@ -79,24 +102,63 @@ import addCorporationInfoModal from './components/addCorporationInfoModal.vue'
 import updateCorporationInfoModal from './components/updateCorporationInfoModal.vue'
 import showCorporationOrderModal from './components/showCorporationOrderModal.vue'
 import { corporation } from '@/interface/corporation'
+import mitt from '@/utils/mitt'
+
 
 const corporationStore = useCorporationStore()
 // const currentPage = corporationStore.currentPage
 const searchQuery = ref('')
+let searchTimeout = null as any;
 const currentSelectedCorporation = ref<corporation | null>(null)
 
 // 处理分页大小变化事件
 const handleSizeChange = (newSize: number) => {
-    console.log(newSize)
+
     corporationStore.pageSize = newSize
-    fetchInitData()
+
+    // 需要判断是普通查询还是模糊查询
+    if (corporationStore.currentSelectModel === 0) {
+        fetchInitData()
+
+        // 如果是模糊查询，则重新执行模糊查询操作，传入新页码和搜索关键字
+    } else if (corporationStore.currentSelectModel === 1) {
+        corporationStore.fuzzyLookupCorporationList(1, searchQuery.value)
+    }
+
 }
 
 // 处理当前页码变化事件
 const handleCurrentChange = (newPage: number) => {
     corporationStore.currentPage = newPage
-    corporationStore.getCorporationList(newPage)
+    // 需要判断是普通查询还是模糊查询
+    if (corporationStore.currentSelectModel === 0) {
+        corporationStore.getCorporationList(newPage)
+
+        // 如果是模糊查询，则重新执行模糊查询操作，传入新页码和搜索关键字
+    } else if (corporationStore.currentSelectModel === 1) {
+        corporationStore.fuzzyLookupCorporationList(newPage, searchQuery.value)
+    }
 }
+
+// 删除公司信息
+const deleteCorporation = async () => {
+
+    console.log('删除公司信息：', currentSelectedCorporation.value?.id)
+
+    // 调用删除接口
+    await corporationStore.deleteCorporation(currentSelectedCorporation.value.id)
+        .then(() => {
+            mitt.emit('ElNotification', { type: 'success', title: "成功", message: `删除 ${currentSelectedCorporation.value.corporationName} 成功~` })
+            // 关闭弹窗
+            alertDialogVisible.value = false
+        })
+        .catch((err: any) => {
+            mitt.emit('ElNotification', { type: 'error', title: "错误", message: '删除失败，错误信息：' + err.message })
+        })
+
+
+}
+
 
 // 刷新数据
 const refreshData = () => {
@@ -110,17 +172,38 @@ const fetchInitData = () => {
 
 // 过滤后的公司数据(后期可添加条件过滤搜索等操作)
 const filteredCorporations = computed(() => {
-    if (!searchQuery.value) return corporationStore.corporations
-    // return corporationStore.corporations.filter(item =>
-    //     item.corporationName.includes(searchQuery.value)
-    // )
+    return corporationStore.corporations
 })
+
+// 输入框输入时，延迟1秒后执行搜索
+const onInput = () => {
+    if (searchTimeout) clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+
+        if (!searchQuery.value) {
+            fetchInitData()
+            return
+        }
+        corporationStore.fuzzyLookupCorporationList(1, searchQuery.value)
+    }, 1000);
+};
 
 // 处理弹窗的显示
 const isAddCorporationInfoModal = ref(false)
 const isupdateCorporationInfoModal = ref(false)
 const isShowCorporationOrderModal = ref(false)
+const alertDialogVisible = ref(false)
 
+// 打开次确认对话框
+const confirmDialogVisible = (row: corporation) => {
+    // 保存当前选中的订单信息
+    currentSelectedCorporation.value = row
+    alertDialogVisible.value = true
+}
+// 关闭二次确认对话框
+const handleAlertClose = () => {
+    alertDialogVisible.value = false
+}
 // 打开添加公司信息弹窗
 const openAddCorporationInfoModal = () => {
     isAddCorporationInfoModal.value = true
@@ -143,6 +226,7 @@ const closeUpdateCorporationInfoModal = () => {
 }
 // 打开查看公司订单弹窗
 const openShowCorporationOrderModal = (row: corporation) => {
+
     currentSelectedCorporation.value = row
     if (!currentSelectedCorporation.value) {
         return

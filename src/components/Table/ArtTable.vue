@@ -120,7 +120,7 @@ import { computed, defineEmits, defineProps, withDefaults } from 'vue'
     currentPage: 1,
     pageSize: 10,
     hideOnSinglePage: true,
-    pageSizes: () => [10, 20, 30, 50],
+    pageSizes: () => [8, 20, 30, 50],
     paginationAlign: 'center',
     paginationSize: 'default',
     paginationLayout: 'total, sizes, prev, pager, next, jumper',

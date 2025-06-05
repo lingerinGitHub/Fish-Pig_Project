@@ -34,7 +34,7 @@ import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import mitt from '@/utils/mitt'
 import { corporation } from '@/interface/corporation'
-
+import { useCorporationStore } from '@/stores/corporationStore'
 
 interface Props {
     visible: boolean,
@@ -90,12 +90,21 @@ const handleSubmit = async () => {
             return
         }
 
-        emit('update:user', { ...formData })
-        emit('update:visible', false)
+        // 调用接口
+        await useCorporationStore().updateCorporation(props.corporation.id, formData.corporationName, formData.sort)
+        .then(() => {
+            mitt.emit('ElNotification', { type: 'success', title: "成功", message: '公司信息更新成功' })
+            ElMessage.success('信息更新成功')
+            // 清空表单
+            formRef.value?.resetFields()
+            emit('update:visible', false)
+        })
+        .catch((err) => {
+            console.error(err)
+            mitt.emit('ElNotification', { type: 'error', title: "错误", message: '公司信息更新失败' })
+        })
 
-        // await userStore.updateUserBaseInfo(formData.name, formData.phone, formData.email, formData.bio)
-
-        ElMessage.success('信息更新成功')
+        
     } catch (error) {
         mitt.emit('ElNotification', { type: 'error', title: "错误", message: '表单校验失败' })
     } finally {
@@ -113,7 +122,6 @@ watch(
     () => props.corporation,
     (newVal) => {
         Object.assign(formData, newVal)
-        console.log(newVal)
     },
     { immediate: true, deep: true }
 )

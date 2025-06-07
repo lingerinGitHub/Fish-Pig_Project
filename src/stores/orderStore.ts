@@ -16,10 +16,16 @@ export const useOrderStore = defineStore('orderStore', {
         ifMoreOrder: true, // 是否有更多订单
     }),
     getters: {
+        ordersTotalGrains(state) {
+            return state.orders.reduce((total, order) => total + order.totalNumberOfGrains, 0)
+        },
+        ordersTotalAmount(state) {
+            return state.orders.reduce((total, order) => total + order.amount, 0)
+        },
 
     },
     actions: {
-        async getOrderList(pageNum: number, corporationId: number) {
+        async getOrderList(pageNum: number, corporationId: number, selectCondition: any) {
 
             this.pageNum = pageNum;
 
@@ -36,7 +42,11 @@ export const useOrderStore = defineStore('orderStore', {
                 {
                     corporationId: corporationId,
                     pageNo: this.pageNum,
-                    pageSize: this.pageSize
+                    pageSize: this.pageSize,
+                    orderCode: selectCondition?.orderCode,
+                    material: selectCondition?.material,
+                    year: selectCondition?.year,
+                    month: selectCondition?.month
                 }
             )
                 .then(res => {
@@ -55,13 +65,12 @@ export const useOrderStore = defineStore('orderStore', {
                     })
                         ;
                 })
-                .catch((err: any) => {
-                    mitt.emit('ElNotification', { type: 'error', title: "错误", message: '错误信息：' + err.message })
-                })
 
 
         },
         async addOrder(orderInfo: order) {
+
+
             await fish_post(httpUrl.addOrder, orderInfo, {
                 amount: orderInfo.amount,
                 bead: orderInfo.bead,
@@ -76,6 +85,10 @@ export const useOrderStore = defineStore('orderStore', {
             })
                 .then(() => {
                     this.getOrderList(1, orderInfo.corporationId)
+                })
+                .catch((err: any) => {
+                    mitt.emit('ElNotification', { type: 'error', title: "错误", message: '错误信息：' + err.message })
+                    throw err;
                 })
 
         },
@@ -97,11 +110,11 @@ export const useOrderStore = defineStore('orderStore', {
                 })
         },
         async deleteOrder(orderId: number) {
-            await fish_post(httpUrl.deleteOrder+orderId, {}, { id: orderId })
-            .then(() => {
-                const index = this.orders.findIndex(item => item.id === orderId)
-                this.orders.splice(index, 1)
-            })
+            await fish_post(httpUrl.deleteOrder + orderId, {}, { id: orderId })
+                .then(() => {
+                    const index = this.orders.findIndex(item => item.id === orderId)
+                    this.orders.splice(index, 1)
+                })
         }
     }
 })

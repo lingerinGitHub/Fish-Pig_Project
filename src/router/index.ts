@@ -1,16 +1,19 @@
 import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
 import type { App } from 'vue'
 import mitt from '../utils/mitt'
+import { useOrderStore } from '@/stores/orderStore'
+import { useUserStore } from '@/stores/userStore'
+import { useCorporationStore } from '@/stores/corporationStore'
 
 // 路由
 const routes = [
+    // {
+    //     path: '/',
+    //     name: 'index',
+    //     component: () => import('../views/index/index.vue')
+    // },
     {
         path: '/',
-        name: 'index',
-        component: () => import('../views/index/index.vue')
-    },
-    {
-        path: '/login',
         name: 'login',
         component: () => import('../views/login/login.vue')
     },
@@ -32,14 +35,22 @@ export const router = createRouter({
 // 路由守卫
 router.beforeEach((to, from, next) => {
 
-    if (to.path !== '/login') {
+    if (to.path !== '/') {
         const accessToken = localStorage.getItem('accessToken')
         if (!accessToken) {
             // 没有token，跳转到登录页
             mitt.emit('ElNotification', { type: 'error', title: "错误", message: '错误信息：' + '请先登录账号！' })
-            next('/login')
+            next('/')
             return
         }
+    }
+
+    // 重置store数据
+    if(to.path === '/') {
+        localStorage.removeItem('accessToken')
+        useUserStore().$reset()
+        useOrderStore().$reset()
+        useCorporationStore().$reset()
     }
 
     next()

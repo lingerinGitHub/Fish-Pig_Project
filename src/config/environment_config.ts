@@ -11,7 +11,7 @@ export const ENV = {
 export const CURRENT_ENV: string = 'development';
 
 function returnCurrentEnvUrl(): string {
-    return CURRENT_ENV === ENV.development ? 'http://192.168.31.180:8081' : 'https://xxx';
+    return CURRENT_ENV === ENV.development ? 'http://192.168.0.15:8081' : 'https://xxx';
 }
 
 

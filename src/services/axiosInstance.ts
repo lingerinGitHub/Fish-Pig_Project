@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { CURRENT_ENV_URL } from '../config/environment_config';
 import { CustomError } from '../utils/customError';
+import { router } from '@/router/index';
 
 // 创建一个 Axios 实例
 const axiosInstance = axios.create({
@@ -47,8 +48,7 @@ axiosInstance.interceptors.response.use(
         //         localStorage.setItem('accessToken', data.accessToken);
         //     }
         // }
-        if (response.data.code !== '200' ) {
-            console.log(response.data)
+        if (response.data.code !== '200') {
             throw new CustomError(response.data.message, response.data.code);
         }
 
@@ -64,6 +64,10 @@ axiosInstance.interceptors.response.use(
             // const errorMessage = findErrorMessage(errorCode);
             throw new CustomError(error.response.data.message, errorCode);
             // 可以在这里根据错误代码执行不同的错误处理逻辑
+        } else if (error.response.status === 401) {
+
+            router.push('/')
+
         } else if (error.request) {
             // 请求已发出，但没有收到响应
             throw new CustomError("网络错误");

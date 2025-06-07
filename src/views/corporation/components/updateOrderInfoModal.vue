@@ -47,11 +47,6 @@
                     show-word-limit />
             </el-form-item>
 
-            <el-form-item label="总粒数" prop="totalNumberOfGrains">
-                <el-input v-model="formData.totalNumberOfGrains" placeholder="请输入总粒数" clearable :maxlength="100"
-                    show-word-limit />
-            </el-form-item>
-
             <el-form-item label="每斤/粒" prop="grainPerCatty">
                 <el-input v-model="formData.grainPerCatty" placeholder="请输入每斤/粒" clearable :maxlength="100"
                     show-word-limit />
@@ -60,11 +55,6 @@
             <el-form-item label="单价(元)" prop="unitPrice">
                 <el-input v-model="formData.unitPrice" placeholder="请输入单价" clearable :maxlength="120" show-word-limit />
             </el-form-item>
-
-            <el-form-item label="总价(元)" prop="amount">
-                <el-input v-model="formData.amount" placeholder="请输入总价" clearable :maxlength="120" show-word-limit />
-            </el-form-item>
-
 
             <div class="dialog-footer">
                 <el-button @click="handleClose">取消</el-button>
@@ -187,26 +177,8 @@ const formRules = reactive<FormRules<typeof formData>>({
             trigger: 'blur'
         }
     ],
-    totalNumberOfGrains: [
-        { required: true, message: '请输入总粒数', trigger: 'blur' },
-        {
-            min: 1,
-            pattern: /^\d+(\.\d+)?$/, // 允许整数或小数（最多一个小数点）
-            message: '请输入有效的数字（可包含一位小数点）',
-            trigger: 'blur'
-        }
-    ],
     unitPrice: [
         { required: true, message: '请输入单价', trigger: 'blur' },
-        {
-            min: 1,
-            pattern: /^\d+(\.\d+)?$/, // 允许整数或小数（最多一个小数点）
-            message: '请输入有效的数字（可包含一位小数点）',
-            trigger: 'blur'
-        }
-    ],
-    amount: [
-        { required: true, message: '请输入总价', trigger: 'blur' },
         {
             min: 1,
             pattern: /^\d+(\.\d+)?$/, // 允许整数或小数（最多一个小数点）

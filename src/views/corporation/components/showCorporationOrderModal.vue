@@ -19,7 +19,7 @@
             </div>
         </template>
     </el-dialog>
-    <el-dialog v-model="dialogVisible" :title="title" top="7.5vh" width="88%" :height="80">
+    <el-dialog v-model="dialogVisible" :title="title" top="7.5vh" width="88%" :height="81">
         <!-- 添加滚动容器 -->
         <div class="table-container">
             <art-table :data="filteredCorporations" height="67.5vh">
@@ -72,7 +72,36 @@
                     @current-change="handleCurrentChange" />
             </div>
 
-            <!-- 触底检测元素 -->
+            <!-- 表单查询条件 -->
+            <div class="selectForm">
+                <el-form :inline="true" :model="selectForm" class="" size="small" >
+                    <el-form-item label="订单编号">
+                        <el-input v-model="selectForm.orderCode" placeholder="可输入查询订单编号" @input="onInput" />
+                    </el-form-item>
+                    <el-form-item label="订单材料">
+                        <el-input v-model="selectForm.material" placeholder="可输入查询订单材料" @input="onInput" />
+                    </el-form-item>
+                    <el-form-item label="订单年份">
+                        <el-input v-model="selectForm.year" placeholder="可输入查询订单年份" @input="onInput" />
+                    </el-form-item>
+                    <el-form-item label="订单月份">
+                        <el-input v-model="selectForm.month" placeholder="可输入查询订单月份" @input="onInput" />
+                    </el-form-item>
+                </el-form>
+            </div>
+
+            <div class="infoContainer">
+                <div class="infoItem">
+                    <div>总粒数</div>
+                    <div>{{ orderStore.ordersTotalGrains || 0 }}</div>
+                </div>
+                <div class="infoItem">
+                    <div>总价</div>
+                    <div>{{ orderStore.ordersTotalAmount || 0}}</div>
+                </div>
+            </div>
+
+            <!-- 添加订单按钮 -->
             <el-button type="warning" class="button" @click="openAddOrderInfoModal">添加订单</el-button>
 
             <!-- 添加订单模态框 -->
@@ -92,7 +121,7 @@
 import { corporation } from '@/interface/corporation';
 // import { useCorporationStore } from '@/stores/corporationStore';
 import { useOrderStore } from '@/stores/orderStore';
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, reactive } from 'vue'
 import addOrderInfoModal from './addOrderInfoModal.vue';
 import updateOrderInfoModal from './updateOrderInfoModal.vue';
 import { order } from '@/interface/order';
@@ -115,9 +144,30 @@ const dialogVisible = computed({
 })
 const emit = defineEmits(['update:visible'])
 
-const title = computed(() => {
-    return props.corporation?.corporationName + '订单列表'
+// 查询条件表单数据
+const selectForm = reactive({
+    orderCode: '',
+    material: '',
+    year: '',
+    month: ''
 })
+
+const title = computed(() => {
+
+    // 添加输入的查询条件
+    let conditions = [];
+    if (selectForm.orderCode) conditions.push(`订单编号=${selectForm.orderCode}`);
+    if (selectForm.material) conditions.push(`材料名称=${selectForm.material}`);
+    if (selectForm.year) conditions.push(`年份=${selectForm.year}`);
+    if (selectForm.month) conditions.push(`月份=${selectForm.month}`);
+
+    let inputCondition = conditions.length > 0
+        ? `查询条件：${conditions.join('，')}`
+        : '';
+
+    return props.corporation?.corporationName + '订单列表 ' + inputCondition
+})
+
 
 // 关闭警告
 const handleAlertClose = () => {
@@ -131,7 +181,6 @@ const filteredCorporations = computed(() => {
 
 // 处理分页大小变化事件
 const handleSizeChange = (newSize: number) => {
-    console.log(newSize)
     orderStore.pageSize = newSize
     orderStore.getOrderList(0, props.corporation.id)
 
@@ -139,7 +188,6 @@ const handleSizeChange = (newSize: number) => {
 
 // 处理当前页码变化事件
 const handleCurrentChange = (newPage: number) => {
-
     orderStore.currentPage = newPage
     orderStore.getOrderList(newPage, props.corporation.id)
 }
@@ -155,13 +203,36 @@ const deleteOrder = async () => {
         })
 }
 
+let searchTimeout = null as any;
+// 输入框输入时，延迟1秒后执行搜索
+const onInput = async () => {
+
+    if (searchTimeout) clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(async () => {
+
+        if (selectForm.orderCode === '' && selectForm.material === '' && selectForm.year === '' && selectForm.month === '') {
+            // 重置查询数据
+            orderStore.getOrderList(1, props.corporation.id)
+            return
+        } else if (selectForm.year === '' && selectForm.month !== '') {
+            mitt.emit('ElNotification', { type: "error", title: "失败", message: '请同时输入年份和月份' })
+            ElMessage.error('请同时输入年份和月份')
+            return
+        }
+        await orderStore.getOrderList(1, props.corporation.id, selectForm)
+            .then(() => {
+                mitt.emit('ElNotification', { type: 'success', title: "成功", message: '查询成功' })
+            })
+    }, 1000);
+};
+
 // 当选择公司更新时
 watch(
     () => props.corporation,
     (newVal) => {
         // Object.assign(formData, newVal)
         orderStore.$reset()
-        orderStore.getOrderList(0, newVal.id)
+        orderStore.getOrderList(1, newVal.id)
     },
 )
 
@@ -202,10 +273,10 @@ const closeAddOrderInfoModal = () => {
 
 <style lang="scss" scoped>
 .table-container {
-    margin-top: -4vh;
+    margin-top: -3vh;
     position: relative;
     height: 80vh;
-    overflow-y: auto;
+    overflow-y: hidden;
 
     .button {
         margin-top: -4vh;
@@ -214,8 +285,40 @@ const closeAddOrderInfoModal = () => {
 
     .pagination-container {
         margin-top: 1%;
+        margin-left: 20%;
         display: flex;
         justify-content: center;
+    }
+
+    .selectForm {
+        position: absolute;
+        bottom: -0.5%;
+        left: 0%;
+        width: 50%;
+        min-width: 400px;
+        height: 12%;
+    }
+
+    .infoContainer {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        right: 110px;
+        bottom: 6px;
+        width: 10%;
+        height: 10%;
+        gap: 5px;
+        // background-color: pink;
+
+        .infoItem {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            background-color: #CCCCCC;
+            padding: 5px;
+            border-radius: 5px;
+        }
     }
 }
 

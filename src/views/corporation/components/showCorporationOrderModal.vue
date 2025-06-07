@@ -68,13 +68,13 @@
             <div class="pagination-container">
                 <el-pagination background layout="total, sizes, prev, pager, next, jumper" :total="orderStore.total"
                     :page-size="orderStore.pageSize" :current-page="orderStore.currentPage"
-                    :page-sizes="[8, 10, 20, 50]" @size-change="handleSizeChange"
+                    :page-sizes="[8, 10, 20, 50, 100, 99999]" @size-change="handleSizeChange"
                     @current-change="handleCurrentChange" />
             </div>
 
             <!-- 表单查询条件 -->
             <div class="selectForm">
-                <el-form :inline="true" :model="selectForm" class="" size="small" >
+                <el-form :inline="true" :model="selectForm" class="" size="small">
                     <el-form-item label="订单编号">
                         <el-input v-model="selectForm.orderCode" placeholder="可输入查询订单编号" @input="onInput" />
                     </el-form-item>
@@ -97,7 +97,7 @@
                 </div>
                 <div class="infoItem">
                     <div>总价</div>
-                    <div>{{ orderStore.ordersTotalAmount || 0}}</div>
+                    <div>{{ orderStore.ordersTotalAmount || 0 }}</div>
                 </div>
             </div>
 
@@ -231,6 +231,12 @@ watch(
     () => props.corporation,
     (newVal) => {
         // Object.assign(formData, newVal)
+        // 清空表单
+        selectForm.orderCode = ''
+        selectForm.material = ''
+        selectForm.year = ''
+        selectForm.month = ''
+
         orderStore.$reset()
         orderStore.getOrderList(1, newVal.id)
     },

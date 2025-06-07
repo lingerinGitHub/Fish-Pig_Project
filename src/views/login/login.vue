@@ -27,10 +27,8 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/userStore'
-import { ElMessage } from 'element-plus'
 import mitt from '../../utils/mitt'
 
-const router = useRouter()
 const userStore = useUserStore()
 
 const loginForm = reactive({

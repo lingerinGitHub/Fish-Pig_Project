@@ -101,7 +101,7 @@ import { useCorporationStore } from '@/stores/corporationStore'
 import addCorporationInfoModal from './components/addCorporationInfoModal.vue'
 import updateCorporationInfoModal from './components/updateCorporationInfoModal.vue'
 import showCorporationOrderModal from './components/showCorporationOrderModal.vue'
-import { corporation } from '@/interface/corporation'
+import type{ corporation } from '@/interface/corporation'
 import mitt from '@/utils/mitt'
 
 

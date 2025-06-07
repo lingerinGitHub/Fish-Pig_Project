@@ -25,7 +25,7 @@ export const useOrderStore = defineStore('orderStore', {
 
     },
     actions: {
-        async getOrderList(pageNum: number, corporationId: number, selectCondition: any) {
+        async getOrderList(pageNum: number, corporationId: number, selectCondition?: any) {
 
             this.pageNum = pageNum;
 

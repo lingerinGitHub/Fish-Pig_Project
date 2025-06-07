@@ -49,6 +49,11 @@ axiosInstance.interceptors.response.use(
         //     }
         // }
         if (response.data.code !== '200') {
+
+            if (response.data.code == 401) {
+                router.push('/')
+            }
+
             throw new CustomError(response.data.message, response.data.code);
         }
 
@@ -64,9 +69,6 @@ axiosInstance.interceptors.response.use(
             // const errorMessage = findErrorMessage(errorCode);
             throw new CustomError(error.response.data.message, errorCode);
             // 可以在这里根据错误代码执行不同的错误处理逻辑
-        } else if (error.response.status === 401) {
-
-            router.push('/')
 
         } else if (error.request) {
             // 请求已发出，但没有收到响应

@@ -50,7 +50,7 @@
                         <el-table-column label="总斤数" prop="totalWeight" width="90" />
                         <el-table-column label="总粒数" prop="totalNumberOfGrains" width="90" />
                         <el-table-column label="每斤/粒" prop="grainPerCatty" width="90" />
-                        <el-table-column label="单价(元/斤)" prop="unitPrice" width="100" />
+                        <el-table-column label="单价(元/粒)" prop="unitPrice" width="100" />
                         <el-table-column label="总价(元)" prop="amount" width="130" />
                         <el-table-column label="原单价" prop="originalUnitPrice" width="130" />
                         <el-table-column label="原金额" prop="originalAmount" width="130" />

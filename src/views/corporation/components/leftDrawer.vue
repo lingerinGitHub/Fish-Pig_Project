@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { corporationTypeToChinese, corporationTagTypeFilter } from '@/utils/corporationUtils'
 import { corporationTypeOptions } from '@/interface/corporation'
 import mitt from '@/utils/mitt'
@@ -83,7 +83,7 @@ const dialogVisible = computed({
 const formData = reactive<any>({
     year: null,
     month: null,
-    type: null
+    type: [0]
 })
 
 const title = computed(() => {
@@ -123,9 +123,6 @@ const title = computed(() => {
 // 发射事件
 const emit = defineEmits(['update:visible'])
 
-function cancelClick() {
-    emit('update:visible', false)
-}
 
 const resultSet = ref({
     totalNumberOfGrains: 0,
@@ -145,7 +142,7 @@ const onInput = async () => {
         const { year, month, type } = formData;
         if ((year === null || year === '') &&
             (month === null || month === '') &&
-            (type === null ||type.length === 0)) {
+            (type === null || type.length === 0)) {
             resultSet.value.totalAmount = 0
             resultSet.value.totalOriginalAmount = 0
             resultSet.value.totalNetAmount = 0
@@ -192,8 +189,19 @@ const searchResult = async () => {
         .catch((err) => {
             mitt.emit('ElNotification', { type: "error", title: "失败", message: '查询失败：' + err })
         })
+
 }
 
+onMounted(() => {
+    var getTime = new Date().getTime(); //获取到当前时间戳
+    var time = new Date(getTime); //创建一个日期对象
+    var year = time.getFullYear().toString(); // 年
+    var month = time.getMonth() + 1; // 月
+
+    formData.year = year;
+    formData.month = month;
+    searchResult();
+})
 </script>
 
 <style scoped lang="scss">

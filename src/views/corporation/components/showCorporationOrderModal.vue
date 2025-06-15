@@ -33,7 +33,7 @@
         <div class="table-container">
             <art-table :data="filteredCorporations" height="67.5vh">
                 <template #default>
-                    <el-table-column label="日期" prop="date" width="100" fixed="left"/>
+                    <el-table-column label="日期" prop="date" width="100" fixed="left" />
                     <el-table-column label="货单编号" prop="orderCode" width="100">
                         <!-- <template #default="{ row }">
                             <span class="hover-pointer">
@@ -59,9 +59,10 @@
                     <el-table-column label="总斤数" prop="totalWeight" width="90" />
                     <el-table-column label="总粒数" prop="totalNumberOfGrains" width="90" />
                     <el-table-column label="每斤/粒" prop="grainPerCatty" width="90" />
-                    <el-table-column label="单价(元/斤)" prop="unitPrice" width="100" />
+                    <el-table-column label="单价(元/粒)" prop="unitPrice" width="100" />
                     <el-table-column label="总价(元)" prop="amount" width="130" />
-                    <el-table-column v-if="props.corporation.type != 0" label="原单价" prop="originalUnitPrice" width="130" />
+                    <el-table-column v-if="props.corporation.type != 0" label="原单价" prop="originalUnitPrice"
+                        width="130" />
                     <el-table-column v-if="props.corporation.type != 0" label="原金额" prop="originalAmount" width="130" />
                     <el-table-column v-if="props.corporation.type != 0" label="净金额" prop="netAmount" width="130" />
                     <el-table-column label="操作" width="110" fixed="right">
@@ -137,7 +138,7 @@ import { computed, ref, watch, reactive } from 'vue'
 import addOrderInfoModal from './addOrderInfoModal.vue';
 import updateOrderInfoModal from './updateOrderInfoModal.vue';
 import { order } from '@/interface/order';
-import { corporationTypeToChinese, corporationTagTypeFilter} from '@/utils/corporationUtils'
+import { corporationTypeToChinese, corporationTagTypeFilter } from '@/utils/corporationUtils'
 import mitt from '@/utils/mitt';
 
 
@@ -243,15 +244,20 @@ const onInput = async () => {
 watch(
     () => props.corporation,
     (newVal) => {
+
+        var getTime = new Date().getTime(); //获取到当前时间戳
+        var time = new Date(getTime); //创建一个日期对象
+        var year = time.getFullYear().toString(); // 年
+        var month = time.getMonth() + 1; // 月
         // Object.assign(formData, newVal)
         // 清空表单
         selectForm.orderCode = ''
         selectForm.material = ''
-        selectForm.year = ''
-        selectForm.month = ''
+        selectForm.year = year
+        selectForm.month = month.toString()
 
         orderStore.$reset()
-        orderStore.getOrderList(1, newVal.id)
+        orderStore.getOrderList(1, newVal.id, selectForm)
     },
 )
 
@@ -295,6 +301,7 @@ const closeAddOrderInfoModal = () => {
     display: flex;
     gap: 10px;
 }
+
 .table-container {
     margin-top: -3vh;
     position: relative;

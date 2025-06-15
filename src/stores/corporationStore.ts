@@ -20,7 +20,7 @@ export const useCorporationStore = defineStore('coroporationStore', {
 
     },
     actions: {
-        async getCorporationList(pageNum: number) {
+        async getCorporationList(pageNum: number, selecteType?: string) {
 
             // 对查询的模式进行判断并根据情况更新pageNum
             if (this.currentSelectModel === 0) {
@@ -36,6 +36,7 @@ export const useCorporationStore = defineStore('coroporationStore', {
                 {
                     pageNo: this.pageNum,
                     pageSize: this.pageSize,
+                    types: selecteType === undefined ? '' : selecteType,
                 }
             )
                 .then((res: any) => {
@@ -47,7 +48,7 @@ export const useCorporationStore = defineStore('coroporationStore', {
                     mitt.emit('ElNotification', { type: 'error', title: "错误", message: '错误信息：' + err.message })
                 })
         },
-        async fuzzyLookupCorporationList(pageNum: number, corporationName: string) {
+        async fuzzyLookupCorporationList(pageNum: number, corporationName: string, selecteType?: string) {
 
             // 对查询的模式进行判断并根据情况更新pageNum
             if (this.currentSelectModel === 1) {
@@ -65,7 +66,8 @@ export const useCorporationStore = defineStore('coroporationStore', {
                 {
                     pageNo: this.pageNum,
                     pageSize: this.pageSize,
-                    corporationName: this.currentFuzzyLookupcorporationName
+                    corporationName: this.currentFuzzyLookupcorporationName,
+                    types: selecteType,
                 }
             )
                 .then((res: any) => {

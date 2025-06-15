@@ -26,6 +26,14 @@
                 <h1 class="page-title">公司管理</h1>
                 <p class="page-subtitle">管理系统中的所有公司信息</p>
             </div>
+            <div class="checkBox">
+                <el-checkbox-group v-model="checkedCorporations" :min="0" :max="3" @change="onChanging">
+                    <el-checkbox v-for="corporation in corporations" :key="corporation" :label="corporation"
+                        :value="corporation">
+                        {{ corporationTypeToChinese(corporation) }}
+                    </el-checkbox>
+                </el-checkbox-group>
+            </div>
             <div class="header-actions">
                 <el-button type="primary" icon="Plus" @click="openLeftDrawer">订单汇总</el-button>
                 <el-button type="warning" icon="Plus" @click="openRightDrawer">规格价格</el-button>
@@ -106,9 +114,9 @@
             v-model:corporation="currentSelectedCorporation"
             @close="closeShowCorporationOrderModal"></show-corporation-order-modal>
 
-        <left-drawer v-model:visible="leftDrawerVisible" ></left-drawer>
+        <left-drawer v-model:visible="leftDrawerVisible"></left-drawer>
 
-        <right-drawer v-model:visible="rightDrawerVisible" ></right-drawer>
+        <right-drawer v-model:visible="rightDrawerVisible"></right-drawer>
     </div>
 </template>
 
@@ -120,7 +128,7 @@ import addCorporationInfoModal from './components/addCorporationInfoModal.vue'
 import updateCorporationInfoModal from './components/updateCorporationInfoModal.vue'
 import showCorporationOrderModal from './components/showCorporationOrderModal.vue'
 import type { corporation } from '@/interface/corporation'
-import { corporationTypeToChinese, corporationTagTypeFilter} from '@/utils/corporationUtils'
+import { corporationTypeToChinese, corporationTagTypeFilter } from '@/utils/corporationUtils'
 import leftDrawer from './components/leftDrawer.vue'
 import rightDrawer from './components/rightDrawer.vue'
 import mitt from '@/utils/mitt'
@@ -129,10 +137,42 @@ import mitt from '@/utils/mitt'
 const corporationStore = useCorporationStore()
 // const currentPage = corporationStore.currentPage
 const searchQuery = ref('')
-let searchTimeout = null as any;
+
 const currentSelectedCorporation = ref<corporation | null>(null)
 
+// 选择查找的公司类型
+const checkedCorporations = ref([0])
+const corporations = [0, 1, 2]
 
+const selectedTypesToString = () => {
+    let typesString = ''
+
+    if (checkedCorporations.value.length === 0) {
+        return undefined
+    }
+    let i = 0
+    for (let item in checkedCorporations.value) {
+        typesString += checkedCorporations.value[item]
+
+        if (i !== checkedCorporations.value.length - 1) {
+            typesString += ','
+            i = i + 1
+        }
+    }
+    return typesString
+}
+
+let searchChangingTimeout = null as any;
+// 选择发生改变时，延迟1秒后执行搜索
+const onChanging = async() => {
+    if (searchChangingTimeout) clearTimeout(searchChangingTimeout);
+    searchChangingTimeout = setTimeout( async() => {
+        await fetchInitData()
+        .then(() => {
+            mitt.emit('ElNotification', { type: 'success', title: "成功", message: `查找成功~` })
+        })
+    }, 1000);
+}
 
 // 处理分页大小变化事件
 const handleSizeChange = (newSize: number) => {
@@ -145,7 +185,7 @@ const handleSizeChange = (newSize: number) => {
 
         // 如果是模糊查询，则重新执行模糊查询操作，传入新页码和搜索关键字
     } else if (corporationStore.currentSelectModel === 1) {
-        corporationStore.fuzzyLookupCorporationList(1, searchQuery.value)
+        corporationStore.fuzzyLookupCorporationList(1, searchQuery.value, selectedTypesToString())
     }
 
 }
@@ -155,11 +195,11 @@ const handleCurrentChange = (newPage: number) => {
     corporationStore.currentPage = newPage
     // 需要判断是普通查询还是模糊查询
     if (corporationStore.currentSelectModel === 0) {
-        corporationStore.getCorporationList(newPage)
-
+        corporationStore.getCorporationList(newPage, selectedTypesToString())
+        searchQuery.value = ''
         // 如果是模糊查询，则重新执行模糊查询操作，传入新页码和搜索关键字
     } else if (corporationStore.currentSelectModel === 1) {
-        corporationStore.fuzzyLookupCorporationList(newPage, searchQuery.value)
+        corporationStore.fuzzyLookupCorporationList(newPage, searchQuery.value, selectedTypesToString())
     }
 }
 
@@ -189,8 +229,9 @@ const refreshData = () => {
 }
 
 // 获取数据
-const fetchInitData = () => {
-    corporationStore.getCorporationList(corporationStore.currentPage)
+const fetchInitData = async() => {
+    searchQuery.value = ''
+    await corporationStore.getCorporationList(corporationStore.currentPage, selectedTypesToString())
 }
 
 // 过滤后的公司数据(后期可添加条件过滤搜索等操作)
@@ -198,6 +239,8 @@ const filteredCorporations = computed(() => {
     return corporationStore.corporations
 })
 
+
+let searchTimeout = null as any;
 // 输入框输入时，延迟1秒后执行搜索
 const onInput = () => {
     if (searchTimeout) clearTimeout(searchTimeout);
@@ -207,7 +250,7 @@ const onInput = () => {
             fetchInitData()
             return
         }
-        corporationStore.fuzzyLookupCorporationList(1, searchQuery.value)
+        corporationStore.fuzzyLookupCorporationList(1, searchQuery.value, selectedTypesToString())
     }, 1000);
 };
 
@@ -289,6 +332,11 @@ onMounted(() => {
     background-color: #fff;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+    .checkBox {
+        height: auto;
+        // width: 100px;
+    }
 
     .header {
         display: flex;

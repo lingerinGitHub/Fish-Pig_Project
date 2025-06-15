@@ -15,4 +15,5 @@ export interface order {
     specification2: string; // 规格2
     specification3: string; // 规格3
     originalUnitPrice: number; // 原单价
+    type?: number; // 公司类型
 }

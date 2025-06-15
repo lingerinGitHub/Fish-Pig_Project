@@ -90,7 +90,7 @@ import mitt from '@/utils/mitt'
 import type { order } from '@/interface/order'
 import { corporation } from '@/interface/corporation';
 import { useOrderStore } from '@/stores/orderStore';
-import { corporationTypeToChinese, corporationTagTypeFilter} from '@/utils/corporationUtils'
+import { corporationTypeToChinese, corporationTagTypeFilter } from '@/utils/corporationUtils'
 
 
 interface Props {
@@ -126,6 +126,7 @@ const formData = reactive<order>({
     specification1: '', // 规格1
     specification2: '', // 规格2
     specification3: '', // 规格3
+    type: props.corporation.type, // 公司类型
 })
 
 const title = computed(() => {
@@ -235,7 +236,7 @@ const handleSubmit = async () => {
 
         console.log(formData)
 
-        await useOrderStore().addOrder(formData, props.corporation)
+        await useOrderStore().addOrder(formData)
             .then(() => {
                 // 重置表单并关闭对话框
                 formRef.value?.resetFields()
@@ -270,6 +271,7 @@ watch(
     () => props.corporation,
     (newVal) => {
         formData.corporationId = props.corporation.id
+        formData.type = props.corporation.type
     },
     { immediate: true, deep: true }
 )

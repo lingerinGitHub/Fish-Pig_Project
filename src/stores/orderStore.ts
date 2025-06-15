@@ -69,23 +69,9 @@ export const useOrderStore = defineStore('orderStore', {
 
 
         },
-        async addOrder(orderInfo: order, corporation: corporation) {
+        async addOrder(orderInfo: order) {
 
-
-            await fish_post(httpUrl.addOrder, orderInfo, {
-                amount: orderInfo.amount,
-                bead: orderInfo.bead,
-                corporationId: orderInfo.corporationId,
-                date: orderInfo.date,
-                grainPerCatty: orderInfo.grainPerCatty,
-                material: orderInfo.material,
-                specification: orderInfo.specification,
-                totalmemberOfGrains: orderInfo.totalNumberOfGrains,
-                totalWeight: orderInfo.totalWeight,
-                unitPrice: orderInfo.unitPrice,
-                originalUnitPrice: orderInfo.originalUnitPrice,
-                type: corporation.type
-            })
+            await fish_post(httpUrl.addOrder, orderInfo)
                 .then(() => {
                     this.getOrderList(1, orderInfo.corporationId)
                 })
@@ -96,19 +82,7 @@ export const useOrderStore = defineStore('orderStore', {
 
         },
         async updateOrder(orderInfo: order) {
-            await fish_post(httpUrl.updateOrder, orderInfo, {
-                amount: orderInfo.amount,
-                bead: orderInfo.bead,
-                corporationId: orderInfo.corporationId,
-                date: orderInfo.date,
-                grainPerCatty: orderInfo.grainPerCatty,
-                material: orderInfo.material,
-                specification: orderInfo.specification,
-                totalmemberOfGrains: orderInfo.totalNumberOfGrains,
-                totalWeight: orderInfo.totalWeight,
-                unitPrice: orderInfo.unitPrice,
-                originalUnitPrice: orderInfo.originalUnitPrice
-            })
+            await fish_post(httpUrl.updateOrder, orderInfo)
                 .then(() => {
                     this.getOrderList(this.currentPage, orderInfo.corporationId)
                 })

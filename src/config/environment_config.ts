@@ -8,7 +8,7 @@ export const ENV = {
 };
 
 // 切换当前环境(development||production)
-export const CURRENT_ENV: string = 'development';
+export const CURRENT_ENV: string = 'production';
 
 function returnCurrentEnvUrl(): string {
     return CURRENT_ENV === ENV.development ? 'http://192.168.31.180:8081' : 'http://127.0.0.1:8081';

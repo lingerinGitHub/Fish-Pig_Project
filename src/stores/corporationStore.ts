@@ -81,7 +81,7 @@ export const useCorporationStore = defineStore('coroporationStore', {
                 })
 
         },
-        async addCorporation(corporationName: string, sort: number, client: string, type: number, detail?: string ) {
+        async addCorporation(corporationName: string, sort: number, client: string, type: number, detail?: string) {
 
             await fish_post(httpUrl.addaddCorporation,
                 {
@@ -99,7 +99,10 @@ export const useCorporationStore = defineStore('coroporationStore', {
                     this.corporations.unshift({
                         id: res.data.data.id,
                         corporationName: res.data.data.corporationName,
-                        sort: res.data.data.sort
+                        sort: res.data.data.sort,
+                        type: res.data.data.type,
+                        username: res.data.data.username,
+                        detailed: res.data.data.detailed
                     })
                     // total数量+1
                     this.total++;
@@ -112,17 +115,17 @@ export const useCorporationStore = defineStore('coroporationStore', {
                     id: id,
                 }
             )
-                .then(async() => {
+                .then(async () => {
                     // 删除列表中公司
                     const index = await this.corporations.map((item: corporation, index: number) => {
-                        if(item.id === id) {
+                        if (item.id === id) {
                             return index
                         }
                     })
 
                     // 删除列表中的数据
                     if (index) {
-                        
+
                         this.corporations.splice(index, 1)
 
                         // total数量-1
@@ -130,8 +133,8 @@ export const useCorporationStore = defineStore('coroporationStore', {
                     }
                 })
         },
-        async updateCorporation(id: number, corporationName: string, sort: number, client: string, type: number, detailed?: string ) {
-            
+        async updateCorporation(id: number, corporationName: string, sort: number, client: string, type: number, detailed?: string) {
+
             await fish_post(httpUrl.updateCorporation,
                 {
                     id: id,

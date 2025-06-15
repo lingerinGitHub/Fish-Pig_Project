@@ -35,6 +35,11 @@ export const router = createRouter({
 // 路由守卫
 router.beforeEach((to, from, next) => {
 
+    if (to.path !== '/' && to.path !== '/corporation') {
+        next('/')
+        return
+    }
+
     if (to.path !== '/') {
         const accessToken = localStorage.getItem('accessToken')
         if (!accessToken) {
@@ -46,7 +51,7 @@ router.beforeEach((to, from, next) => {
     }
 
     // 重置store数据
-    if(to.path === '/') {
+    if (to.path === '/') {
         localStorage.removeItem('accessToken')
         useUserStore().$reset()
         useOrderStore().$reset()

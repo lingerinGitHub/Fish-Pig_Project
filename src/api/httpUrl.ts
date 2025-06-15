@@ -10,5 +10,7 @@ export const httpUrl = {
     addOrder: `${CURRENT_ENV_URL}/order/addOrder`, // 添加订单信息
     updateOrder: `${CURRENT_ENV_URL}/order/updateOrder`, // 更新订单信息
     deleteOrder: `${CURRENT_ENV_URL}/order/deleteOrder/`, // 删除订单信息
+    selectTotalOrder: `${CURRENT_ENV_URL}/order/selectTotalOrder`, // 条件查询所有订单信息
+    selectAllOrderByMaterialAndSpecification: `${CURRENT_ENV_URL}/order/selectAllOrderByMaterialAndSpecification`, // 根据物料和规格查询所有订单信息
 
 }

@@ -5,7 +5,6 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 
-
 export default defineConfig({
   plugins: [
     vue(),
@@ -23,9 +22,12 @@ export default defineConfig({
     }
   },
   esbuild: {
-    drop: ['console', 'debugger']
+    // drop: ['console', 'debugger']
   },
   build: {
     outDir: './dist'
-  }
+  },
+  server: {
+    port: 8888, // 修改为你想使用的端口
+  },
 })

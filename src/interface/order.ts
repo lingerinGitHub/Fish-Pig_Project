@@ -14,4 +14,5 @@ export interface order {
     specification1: string; // 规格1
     specification2: string; // 规格2
     specification3: string; // 规格3
+    originalUnitPrice: number; // 原单价
 }

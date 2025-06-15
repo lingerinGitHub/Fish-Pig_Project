@@ -20,11 +20,20 @@
         </template>
     </el-dialog>
     <el-dialog v-model="dialogVisible" :title="title" top="7.5vh" width="88%" :height="81">
+        <!-- 弹窗头部 -->
+        <template #header="">
+            <div class="header">
+                <el-tag effect="dark" :type="corporationTagTypeFilter(props.corporation.type)">
+                    {{ corporationTypeToChinese(props.corporation.type) }}
+                </el-tag>
+                {{ title }}
+            </div>
+        </template>
         <!-- 添加滚动容器 -->
         <div class="table-container">
             <art-table :data="filteredCorporations" height="67.5vh">
                 <template #default>
-                    <el-table-column label="日期" prop="date" width="100" />
+                    <el-table-column label="日期" prop="date" width="100" fixed="left"/>
                     <el-table-column label="货单编号" prop="orderCode" width="100">
                         <!-- <template #default="{ row }">
                             <span class="hover-pointer">
@@ -32,8 +41,8 @@
                             </span>
                         </template> -->
                     </el-table-column>
-                    <el-table-column label="材质" prop="material" width="190" />
-                    <el-table-column label="规格(mm)" prop="specification" width="150">
+                    <el-table-column label="材质" prop="material" width="120" />
+                    <el-table-column label="规格(mm)" prop="specification" width="220" :show-overflow-tooltip="false">
                         <!-- <template #default="{ row }">
                             <el-tag :type="row.status !== 1 ? 'success' : 'danger'">
                                 {{ row.status !== 1 ? '正常' : '异常' }}
@@ -52,12 +61,15 @@
                     <el-table-column label="每斤/粒" prop="grainPerCatty" width="90" />
                     <el-table-column label="单价(元/斤)" prop="unitPrice" width="100" />
                     <el-table-column label="总价(元)" prop="amount" width="130" />
-                    <el-table-column label="操作" width="180" fixed="right">
+                    <el-table-column v-if="props.corporation.type != 0" label="原单价" prop="originalUnitPrice" width="130" />
+                    <el-table-column v-if="props.corporation.type != 0" label="原金额" prop="originalAmount" width="130" />
+                    <el-table-column v-if="props.corporation.type != 0" label="净金额" prop="netAmount" width="130" />
+                    <el-table-column label="操作" width="110" fixed="right">
                         <template #default="{ row }">
                             <el-button type="primary" size="small" icon="Edit"
-                                @click="openUpdateOrderInfoModal(row)">编辑</el-button>
+                                @click="openUpdateOrderInfoModal(row)"></el-button>
                             <el-button type="danger" size="small" icon="Delete"
-                                @click="confirmDialogVisible(row)">删除</el-button>
+                                @click="confirmDialogVisible(row)"></el-button>
                         </template>
                     </el-table-column>
                     <!-- <div>123</div> -->
@@ -125,6 +137,7 @@ import { computed, ref, watch, reactive } from 'vue'
 import addOrderInfoModal from './addOrderInfoModal.vue';
 import updateOrderInfoModal from './updateOrderInfoModal.vue';
 import { order } from '@/interface/order';
+import { corporationTypeToChinese, corporationTagTypeFilter} from '@/utils/corporationUtils'
 import mitt from '@/utils/mitt';
 
 
@@ -278,6 +291,10 @@ const closeAddOrderInfoModal = () => {
 </script>
 
 <style lang="scss" scoped>
+.header {
+    display: flex;
+    gap: 10px;
+}
 .table-container {
     margin-top: -3vh;
     position: relative;

@@ -3,6 +3,7 @@ import { fish_post } from "../services/axiosMethods";
 import { httpUrl } from "../api/httpUrl";
 import mitt from "../utils/mitt";
 import type { order } from "@/interface/order";
+import { corporation } from "@/interface/corporation";
 
 export const useOrderStore = defineStore('orderStore', {
     state: () => ({
@@ -63,12 +64,12 @@ export const useOrderStore = defineStore('orderStore', {
 
                         return item
                     })
-                        ;
+
                 })
 
 
         },
-        async addOrder(orderInfo: order) {
+        async addOrder(orderInfo: order, corporation: corporation) {
 
 
             await fish_post(httpUrl.addOrder, orderInfo, {
@@ -81,7 +82,9 @@ export const useOrderStore = defineStore('orderStore', {
                 specification: orderInfo.specification,
                 totalmemberOfGrains: orderInfo.totalNumberOfGrains,
                 totalWeight: orderInfo.totalWeight,
-                unitPrice: orderInfo.unitPrice
+                unitPrice: orderInfo.unitPrice,
+                originalUnitPrice: orderInfo.originalUnitPrice,
+                type: corporation.type
             })
                 .then(() => {
                     this.getOrderList(1, orderInfo.corporationId)
@@ -103,7 +106,8 @@ export const useOrderStore = defineStore('orderStore', {
                 specification: orderInfo.specification,
                 totalmemberOfGrains: orderInfo.totalNumberOfGrains,
                 totalWeight: orderInfo.totalWeight,
-                unitPrice: orderInfo.unitPrice
+                unitPrice: orderInfo.unitPrice,
+                originalUnitPrice: orderInfo.originalUnitPrice
             })
                 .then(() => {
                     this.getOrderList(this.currentPage, orderInfo.corporationId)

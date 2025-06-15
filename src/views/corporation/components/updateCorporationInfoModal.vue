@@ -1,10 +1,7 @@
 <template>
-    <el-dialog v-model="dialogVisible" title="修改公司信息" width="500px" @closed="handleClose" top="25vh"
-        class="basic-info-dialog">
+    <el-dialog v-model="dialogVisible" title="修改公司信息" width="500px" @closed="handleClose" top="15vh"
+        :destroy-on-close="true" class="basic-info-dialog">
         <el-form ref="formRef" :model="formData" :rules="formRules" label-position="top" @submit.prevent="handleSubmit">
-            <el-form-item label="公司ID" prop="id">
-                <el-input v-model="formData.id" :disabled="true" />
-            </el-form-item>
 
             <el-form-item label="修改公司名称" prop="corporationName">
                 <el-input v-model="formData.corporationName" placeholder="请输入公司名称" clearable :maxlength="100"
@@ -13,6 +10,27 @@
 
             <el-form-item label="修改公司排序" prop="sort">
                 <el-input v-model="formData.sort" placeholder="请输入公司排序" clearable :maxlength="10">
+                    <template #prefix>
+                    </template>
+                </el-input>
+            </el-form-item>
+
+            <el-form-item label="修改客户名称" prop="username">
+                <el-input v-model="formData.username" placeholder="请输入客户名称" clearable :maxlength="10">
+                    <template #prefix>
+                    </template>
+                </el-input>
+            </el-form-item>
+
+            <el-form-item label="修改公司类型" prop="type">
+                <el-select v-model="formData.type" placeholder="请选择公司类型" style="width: 100%">
+                    <el-option v-for="item in corporationTypeOptions" :key="item.value" :label="item.label"
+                        :value="item.value" />
+                </el-select>
+            </el-form-item>
+
+            <el-form-item label="修改公司详情详情" prop="detailed">
+                <el-input v-model="formData.detailed" placeholder="可输入公司详情" clearable :maxlength="200" type="textarea">
                     <template #prefix>
                     </template>
                 </el-input>
@@ -33,7 +51,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import mitt from '@/utils/mitt'
-import { corporation } from '@/interface/corporation'
+import { corporation, corporationTypeOptions } from '@/interface/corporation'
 import { useCorporationStore } from '@/stores/corporationStore'
 
 interface Props {
@@ -48,14 +66,17 @@ const formRef = ref<FormInstance>()
 const submitting = ref(false)
 
 const formData = reactive<corporation>({
-    id: props.corporation?.id || null,
-    sort: props.corporation?.sort || null,
-    corporationName: props.corporation?.corporationName || null
+    id: null,
+    sort: null,
+    corporationName: null,
+    username: null,
+    type: null,
+    detailed: null
 })
 
 const formRules = reactive<FormRules<typeof formData>>({
     sort: [
-        { required: true, message: '请输入公司排序', trigger: 'blur' },
+        { required: true, message: '请输入排序', trigger: 'blur' },
         {
             min: 1,
             pattern: /^\d+$/,
@@ -71,7 +92,34 @@ const formRules = reactive<FormRules<typeof formData>>({
             message: '请输入正确的公司名称',
             trigger: 'blur'
         }
-    ]
+    ],
+    username: [
+        { required: true, message: '请输入客户名称', trigger: 'blur' },
+        {
+            min: 1,
+            max: 100,
+            message: '请输入正确的客户名称',
+            trigger: 'blur'
+        }
+    ],
+    detailed: [
+        { required: false, message: '请输入公司详情', trigger: 'blur' },
+        {
+            min: 1,
+            max: 200,
+            message: '请输入正确的公司详情',
+            trigger: 'blur'
+        }
+    ],
+    type: [
+        { required: true, message: '请选择公司类型', trigger: 'blur' },
+        {
+            pattern: /^\d+$/,
+            message: '请输入数字',
+            trigger: 'blur'
+        }
+    ],
+
 })
 
 const dialogVisible = computed({
@@ -91,20 +139,19 @@ const handleSubmit = async () => {
         }
 
         // 调用接口
-        await useCorporationStore().updateCorporation(props.corporation.id, formData.corporationName, formData.sort)
-        .then(() => {
-            mitt.emit('ElNotification', { type: 'success', title: "成功", message: '公司信息更新成功' })
-            ElMessage.success('信息更新成功')
-            // 清空表单
-            formRef.value?.resetFields()
-            emit('update:visible', false)
-        })
-        .catch((err) => {
-            console.error(err)
-            mitt.emit('ElNotification', { type: 'error', title: "错误", message: '公司信息更新失败' })
-        })
+        await useCorporationStore().updateCorporation(props.corporation.id, formData.corporationName, formData.sort, formData.username, formData.type, formData.detailed)
+            .then(() => {
+                mitt.emit('ElNotification', { type: 'success', title: "成功", message: '公司信息更新成功' })
+                ElMessage.success('信息更新成功')
+                // 清空表单
+                emit('update:visible', false)
+            })
+            .catch((err) => {
+                console.error(err)
+                mitt.emit('ElNotification', { type: 'error', title: "错误", message: '公司信息更新失败' })
+            })
 
-        
+
     } catch (error) {
         mitt.emit('ElNotification', { type: 'error', title: "错误", message: '表单校验失败' })
     } finally {
@@ -113,17 +160,38 @@ const handleSubmit = async () => {
 }
 
 const handleClose = () => {
-    formRef.value?.resetFields()
+    // formRef.value?.resetFields()
     emit('update:visible', false)
 }
 
 // 当选择公司更新时
+// watch(
+//     () => props.corporation,
+//     (newVal) => {
+//         console.log('newVal', newVal)
+//         Object.assign(formData, newVal)
+//         // formData.corporationName = newVal.corporationName
+//         // formData.sort = newVal.sort
+//         // formData.username = newVal.username
+//         // formData.type = newVal.type
+//         // formData.detailed = newVal.detailed
+//     },
+//     { immediate: true,deep: true }
+// )
+// 当选择公司更新时
 watch(
     () => props.corporation,
     (newVal) => {
-        Object.assign(formData, newVal)
+        console.log('newVal', newVal)
+        // 分别赋值
+        formData.id = newVal.id;
+        formData.sort = newVal.sort;
+        formData.corporationName = newVal.corporationName;
+        formData.username = newVal.username;
+        formData.type = newVal.type;
+        formData.detailed = newVal.detailed;
     },
-    { immediate: true, deep: true }
+    { deep: true }
 )
 </script>
 

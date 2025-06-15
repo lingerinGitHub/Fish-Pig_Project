@@ -81,11 +81,15 @@ export const useCorporationStore = defineStore('coroporationStore', {
                 })
 
         },
-        async addCorporation(corporationName: string, sort: number) {
+        async addCorporation(corporationName: string, sort: number, client: string, type: number, detail?: string ) {
+
             await fish_post(httpUrl.addaddCorporation,
                 {
                     corporationName: corporationName,
-                    sort: sort
+                    sort: sort,
+                    username: client,
+                    type: type,
+                    detailed: detail
                 }
             )
                 .then(res => {
@@ -126,12 +130,16 @@ export const useCorporationStore = defineStore('coroporationStore', {
                     }
                 })
         },
-        async updateCorporation(id: number, corporationName: string, sort: number) {
+        async updateCorporation(id: number, corporationName: string, sort: number, client: string, type: number, detailed?: string ) {
+            
             await fish_post(httpUrl.updateCorporation,
                 {
                     id: id,
                     corporationName: corporationName,
-                    sort: sort
+                    sort: sort,
+                    username: client,
+                    type: type,
+                    detailed: detailed
                 }
             )
                 .then(() => {
@@ -141,8 +149,13 @@ export const useCorporationStore = defineStore('coroporationStore', {
                         if (item.id === id) {
                             this.corporations[index].corporationName = corporationName
                             this.corporations[index].sort = sort
+                            this.corporations[index].username = client
+                            this.corporations[index].type = type
+                            this.corporations[index].detailed = detailed
+
                             return
                         }
+
                     })
                 })
         }

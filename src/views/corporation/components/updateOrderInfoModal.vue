@@ -1,6 +1,17 @@
 <template>
     <el-dialog v-model="dialogVisible" :title="title" width="530px" @closed="handleClose" top="4vh"
         class="basic-info-dialog" :close-on-click-modal="false">
+
+        <!-- 弹窗头部 -->
+        <template #header="">
+            <div class="header">
+                <el-tag effect="dark" :type="corporationTagTypeFilter(props.corporation.type)">
+                    {{ corporationTypeToChinese(props.corporation.type) }}
+                </el-tag>
+                {{ title }}
+            </div>
+        </template>
+
         <el-form ref="formRef" :model="formData" :rules="formRules" label-position="left" label-width="130px"
             @submit.prevent="handleSubmit">
 
@@ -56,6 +67,11 @@
                 <el-input v-model="formData.unitPrice" placeholder="请输入单价" clearable :maxlength="120" show-word-limit />
             </el-form-item>
 
+            <el-form-item v-if="props.corporation.type != 0" label="原单价" prop="originalUnitPrice">
+                <el-input v-model="formData.originalUnitPrice" placeholder="请输入原单价" clearable :maxlength="120"
+                    show-word-limit />
+            </el-form-item>
+
             <div class="dialog-footer">
                 <el-button @click="handleClose">取消</el-button>
                 <el-button type="primary" native-type="submit" :loading="submitting">
@@ -73,6 +89,7 @@ import mitt from '@/utils/mitt'
 import type { order } from '@/interface/order'
 import { corporation } from '@/interface/corporation';
 import { useOrderStore } from '@/stores/orderStore';
+import { corporationTypeToChinese, corporationTagTypeFilter} from '@/utils/corporationUtils'
 
 
 interface Props {
@@ -105,6 +122,7 @@ const formData = reactive<order>({
     amount: props.order.amount, // 金额
     corporationId: props.corporation.id, // 供应商id
     orderCode: props.order.orderCode, // 订单编号
+    originalUnitPrice: props.corporation.type == 0 ? 0 : props.order.originalUnitPrice, // 原始单价
     specification1: props.order.specification1, // 规格1
     specification2: props.order.specification2, // 规格2
     specification3: props.order.specification3, // 规格3
@@ -186,6 +204,14 @@ const formRules = reactive<FormRules<typeof formData>>({
             trigger: 'blur'
         }
     ],
+    originalUnitPrice: [
+        { required: true, message: '请输入原单价', trigger: 'blur' },
+        {
+            pattern: /^\d+(\.\d+)?$/, // 允许整数或小数（最多一个小数点）
+            message: '请输入有效的数字（可包含一位小数点）',
+            trigger: 'blur'
+        }
+    ]
 })
 
 const dialogVisible = computed({
@@ -206,8 +232,6 @@ const handleSubmit = async () => {
                 '2': formData.specification2,
                 '3': formData.specification3,
             })
-
-        console.log(formData)
 
         await useOrderStore().updateOrder(formData)
             .then(() => {
@@ -334,5 +358,9 @@ watch(
             margin-top: 20vh !important;
         }
     }
+}
+.header {
+    display: flex;
+    gap: 10px;
 }
 </style>

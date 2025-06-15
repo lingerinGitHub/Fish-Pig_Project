@@ -27,7 +27,9 @@
                 <p class="page-subtitle">管理系统中的所有公司信息</p>
             </div>
             <div class="header-actions">
-                <el-button type="primary" icon="Plus" @click="openAddCorporationInfoModal">新增公司</el-button>
+                <el-button type="primary" icon="Plus" @click="openLeftDrawer">订单汇总</el-button>
+                <el-button type="warning" icon="Plus" @click="openRightDrawer">规格价格</el-button>
+                <el-button type="info" icon="Plus" @click="openAddCorporationInfoModal">新增公司</el-button>
                 <el-button icon="Refresh" @click="refreshData">刷新</el-button>
             </div>
         </div>
@@ -37,7 +39,7 @@
             <art-table :data="filteredCorporations">
                 <template #default>
                     <el-table-column label="ID" prop="id" width="80" />
-                    <el-table-column label="公司名称" prop="corporationName" min-width="200">
+                    <el-table-column label="公司名称" prop="corporationName" width="300">
                         <template #default="{ row }">
                             <el-tooltip class="box-item" effect="dark" content="点击查看公司订单" placement="top">
                                 <span class="hover-pointer" @click="openShowCorporationOrderModal(row)">
@@ -46,15 +48,27 @@
                             </el-tooltip>
                         </template>
                     </el-table-column>
-                    <el-table-column label="排序" prop="sort" width="100" sortable />
-                    <el-table-column label="状态" width="100">
+
+                    <el-table-column label="客户名称" prop="username" width="150" />
+
+                    <el-table-column label="排序" prop="sort" width="130" sortable />
+
+                    <el-table-column label="状态" width="130">
                         <template #default="{ row }">
                             <el-tag :type="row.status !== 1 ? 'success' : 'danger'">
                                 {{ row.status !== 1 ? '正常' : '异常' }}
                             </el-tag>
                         </template>
                     </el-table-column>
-                    <el-table-column label="创建时间" prop="createTime" width="180" />
+
+                    <el-table-column label="公司类型" prop="type" width="180">
+                        <template #default="{ row }">
+                            <el-tag :type="corporationTagTypeFilter(row.type)">
+                                {{ corporationTypeToChinese(row.type) }}
+                            </el-tag>
+                        </template>
+                    </el-table-column>
+
                     <el-table-column label="操作" width="180" fixed="right">
                         <template #default="{ row }">
                             <el-button type="primary" size="small" icon="Edit"
@@ -91,6 +105,10 @@
         <show-corporation-order-modal v-model:visible="isShowCorporationOrderModal"
             v-model:corporation="currentSelectedCorporation"
             @close="closeShowCorporationOrderModal"></show-corporation-order-modal>
+
+        <left-drawer v-model:visible="leftDrawerVisible" ></left-drawer>
+
+        <right-drawer v-model:visible="rightDrawerVisible" ></right-drawer>
     </div>
 </template>
 
@@ -101,7 +119,10 @@ import { useCorporationStore } from '@/stores/corporationStore'
 import addCorporationInfoModal from './components/addCorporationInfoModal.vue'
 import updateCorporationInfoModal from './components/updateCorporationInfoModal.vue'
 import showCorporationOrderModal from './components/showCorporationOrderModal.vue'
-import type{ corporation } from '@/interface/corporation'
+import type { corporation } from '@/interface/corporation'
+import { corporationTypeToChinese, corporationTagTypeFilter} from '@/utils/corporationUtils'
+import leftDrawer from './components/leftDrawer.vue'
+import rightDrawer from './components/rightDrawer.vue'
 import mitt from '@/utils/mitt'
 
 
@@ -110,6 +131,8 @@ const corporationStore = useCorporationStore()
 const searchQuery = ref('')
 let searchTimeout = null as any;
 const currentSelectedCorporation = ref<corporation | null>(null)
+
+
 
 // 处理分页大小变化事件
 const handleSizeChange = (newSize: number) => {
@@ -193,6 +216,8 @@ const isAddCorporationInfoModal = ref(false)
 const isupdateCorporationInfoModal = ref(false)
 const isShowCorporationOrderModal = ref(false)
 const alertDialogVisible = ref(false)
+const leftDrawerVisible = ref(false)
+const rightDrawerVisible = ref(false)
 
 // 打开次确认对话框
 const confirmDialogVisible = (row: corporation) => {
@@ -237,6 +262,17 @@ const openShowCorporationOrderModal = (row: corporation) => {
 const closeShowCorporationOrderModal = () => {
     isShowCorporationOrderModal.value = false
 }
+
+// 打开左侧抽屉
+const openLeftDrawer = () => {
+    leftDrawerVisible.value = true
+}
+
+// 打开右侧抽屉
+const openRightDrawer = () => {
+    rightDrawerVisible.value = true
+}
+
 
 onMounted(() => {
     // 初始第一页数据加载
